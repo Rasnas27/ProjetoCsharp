@@ -1,0 +1,141 @@
+Template Engine -> Projeto onde a estrutura e o layout são feitos juntos ".cshtml"
+
+-- Criar novo projeto no ASP.NET WEB APP MVC
+-- Criação de repositório no github / git init / git remote add origin .. / git pull origin main
+
+-> MODEL = estrutura dos dados, entidades e serviços
+-> CONTROLLERS = receber e tratar interações usuário e sistema
+-> VIEW = definir a estrutura e comportamento das telas
+
+DbContext => encapsula uma sessao com o BD pra um determinado modelo de dado
+-usado para consultar e salvar endidades no banco de dados
+-criar : CONTROLLER > ADD > NEW SCAFFOLDED ITEM > MVC CONTROLLER WITH VIEWS USING ENTITIES FWK
+
+-> Colocar a dependencia no inicio quando vai utilizar o banco de dados
+private readonly NomeDoArquivoContext 
+
+Pasta SHARED --> será utilizada por mais de um controller
+ex: _layout => todos os rodapés e cabeçalhos
+=> arquivo bootstrap e JS
+
+View imports = Lista das bibliotecas gerais que serão usadas
+
+Appsettings.json => Conexões externas:
+- logging
+- Banco de dados
+
+*  Novo CONTROLLER
+-> Pasta CONTROLLER > ADD > CONTROLLER 
+
+* MIGRATION
+-> conectar projeto ao banco de dados,
+escrever no json qual é a conexao
+escrever no startup qual o programa
+baixar o provider "Install-Package Pomelo.EntityFrameworkCore.MySql -Version 2.1.1"
+Comando no PM => Add-Migration inicial
+Update-Database
+
+* Temas do bootstrap
+http://bootswatch.com/3
+colar no wwwroot/bootstrap/dist/css
+open _layout -> mudar nome do bootstrap
+
+* Criação de ENTIDADES
+atributos,
+associação (ICollection (pode ser List, HashSet...))
+Constructors
+Custom methods 
+Colocar em tabalas:
+Ir no Data > dbContext
+adicionar DbSet
+public DbSet<Nome> Nome { get; set }
+
+
+* SEEDING SERVICE
+Class que cria volume de dados para a aplicação
+criar class em Data -> inserção de dados como sendo de "fora"
+Startup.cs => injeção dos dados nod sistema
+
+* CRIAÇÃO DE LINK NO NAVBAR
+_layout => colocar <a href="" ></a>
+amarrar o link ao controller
+asp-controller = "NomeDoControllerCertinho"
+
+* CRIAR PASTA DE SERVIÇOS 
+adicionar os serviços no startup 
+-> ConfigureServices
+services.AddScoped<NomeDoServico>();
+
+* ARQUIVO CONECTADO AO BANCO
+-> No controller
+-> private readonly(não permite que modifiquem) NomeDoProjetoContext _context;
+
+*CRIAÇÃO DE LIST
+public List<Seller> FindAll() {
+	return _context.Seller.ToList();
+-> Para passar a lista p/ html
+Mencionar a fonte da lista
+@model IEnumerable<SalesWebMvc.Models.Seller>
+
+*Método POST
+Utilizar o método get para pegar as informações(usar no return View (
+Utilizar método POST para modificar 
+colocar: [HttpPost] antes do método
+
+*Voltar a página anterior após a ação
+return RedirectToAction(nameof(index))
+--após remover ou adicionar alguma coisa no banco
+colocar _context.SaveChanges(); 
+
+--Para criar no formato de botão:
+Class = "btn btn-default"
+
+->Para aparecer o tipo de departamento:
+Seller Service > FindById > "Include(obj => obj.department).FirstOrDefault(obj => obj.Id == id)
+
+* Criação de pasta Exception em Services
+->Criação dos métodos que recebem as msgs
+no Update, primeiro testar se o ID é igual ao do objeto.
+-> _context.Update(seller) -> salvar as mudancas com _context.SaveChanges();
+
+->MUDAR NOME NA TABELA
+antes do atributo no MODEL, colocar:
+[Display(Name = "Birth Date")]
+->MUDAR DATA NA TABELA
+[DataType(DataType.Date)] => remove as horas
+[DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")] => coloca no formato que quer
+
+* VALIDAÇÃO
+[Required(ErrorMessage = "{0} required")] => Para mostrar que é necessário preencher
+[StringLength(60, MinimumLength = 3, ErrorMessage = "{0} size should be between {2} and {1}")] => Para falar que é necessário estar entre os parametros
+=> Adicionar o menu visível quando tentar:
+<div asp-validation-summary="All" class="text-danger"></div>
+no arquivo que irá aparecer, no caso "CREATE.CSHTML"
+e ao final: 
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+	
+---> PARA APARECER ABAIXO DO CAMPO:
+<span asp-validation-for="Seller.Name" class="text-danger"></span>
+
+* VALIDAR SEM JS
+ir no controller POST
+if (!ModelState.IsValid){
+	var departments = _departmentService.FindAll();
+	var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+	return View(viewModel);
+}
+
+* MODO SYNCRONO => pausa a aplicação para executar a função
+* MODO ASYNCRONO => aplicação funciona com a função em atividade secundária
+-- ir no método que busca as listas no banco de dados
+DepartmentService.cs
+DepartmentController
+SellerService
+SellerController
+-> public async Task<List<Deparment>> FindAllAsync() {
+return await .................. ToListAsync();
+}
+
+
